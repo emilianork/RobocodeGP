@@ -1,5 +1,5 @@
 # ..... Example starts.
-require 'tree'                 # Load the library
+require './lib/rubytree-0.8.2/tree.rb'                 # Load the library
 
 # ..... Create the root node first.  Note that every node has a name and an optional content payload.
 root_node = Tree::TreeNode.new("ROOT", "Root Content")
@@ -14,6 +14,4 @@ root_node << Tree::TreeNode.new("CHILD5", "Child5 Content") << Tree::TreeNode.ne
 # ..... Lets print the representation to stdout.  This is primarily used for debugging purposes.
 #root_node.print_tree
 #puts root_node.node_height
-root_node.children {|child|
-  child.print_tree
-}
+puts root_node.content
