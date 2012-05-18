@@ -9,9 +9,14 @@ root_node << Tree::TreeNode.new("CHILD1", "Child1 Content") << Tree::TreeNode.ne
 root_node << Tree::TreeNode.new("CHILD2", "Child2 Content")
 root_node << Tree::TreeNode.new("CHILD3", "Child3 Content") << Tree::TreeNode.new("GRANDCHILD3", "GrandChild3 Content")
 root_node << Tree::TreeNode.new("CHILD4", "Child4 Content") << Tree::TreeNode.new("GRANDCHILD4", "GrandChild3 Content")
-root_node << Tree::TreeNode.new("CHILD5", "Child5 Content") << Tree::TreeNode.new("GRANDCHILD5", "GrandChild5 Content")
+child5 = Tree::TreeNode.new("GRANDCHILD5", "GrandChild5 Content")
+root_node << Tree::TreeNode.new("CHILD5", "Child5 Content") << child5
 
 # ..... Lets print the representation to stdout.  This is primarily used for debugging purposes.
 #root_node.print_tree
 #puts root_node.node_height
-puts root_node.content
+puts root_node.print_tree
+
+puts child5.parentage
+
+

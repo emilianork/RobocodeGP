@@ -48,55 +48,96 @@ class Individuo
     @listTermJAVAOnHitBullet = {"EnergyRobot" => "e.getEnergy()"}
     @listTermJAVAOnHitByBullet = {"Bearing" => "e.getBearing()","Power" => "e.getPower()", 
                                   "VelocityRobot" => "e.getVelocity()"}
+    # Hash para la funcion OnHead                              
+    @functOnHeadNum = {1=>"Head"}
+    @functOnHeadJAVA = {"Head" => "ahead(#1);"} 
+    @functOnHeadArity = {"Head" => 1}
+    
+    # Hash para la funcion Fire
+    @functFireNum = {1 => "Fire"}
+    @functFireJAVA = {"Fire" => "fire(#1);"} 
+    @functFireArity = {"Fire" => 1}
     # Creamos el nodo raiz y sus 3 nodos principales      
     @tree = Tree::TreeNode.new("Main", "Nodo Raiz") 
-    @tree << Tree::TreeNode.new("onScannedRobot",Funct.new(@listFunctNum,@listFunctJAVA,@listFunctArity,true))
-    @tree << Tree::TreeNode.new("onHitBullet",Funct.new(@listFunctNum,@listFunctJAVA,@listFunctArity,true))
-    @tree << Tree::TreeNode.new("onHitByBullet",Funct.new(@listFunctNum,@listFunctJAVA,@listFunctArity,true))
+    onScannedRobot = Tree::TreeNode.new("onScannedRobot","Nodo del evento onScannedRobot")
+    onHitBullet = Tree::TreeNode.new("onHitBullet","Nodo del evento onHitBullet")
+    onHitByBullet = Tree::TreeNode.new("onHitByBullet","Nodo del evento")
+    
+    # onScannedRobot solo tendra dos funciones importantes
+    # ahead(double distance) para moverse hacia tras o hacia delante
+    # fire(double power) para disparar hacia el tanke
+    onScannedRobot << Tree::TreeNode.new("onHead1", Funct.new(@functOnHeadNum,@functOnHeadJAVA,@functOnHeadArity,true))
+    onScannedRobot << Tree::TreeNode.new("fire", Funct.new(@functFireNum,@functFireJAVA,@functFireArity,true))
+    
+    # onHitBullet solo debe de decidir que direccion tomar
+    # por lo que el unico metodo a llamar es ahead(double distance)
+    onHitBullet << Tree::TreeNode.new("onHead2", Funct.new(@functOnHeadNum,@functOnHeadJAVA,@functOnHeadArity,true))
+    
+    # onHitByBullet solo debe de decidir que direccion tomar
+    # por lo que el unico metodo a llamar es ahead(double distance)
+    onHitByBullet << Tree::TreeNode.new("onHead3", Funct.new(@functOnHeadNum,@functOnHeadJAVA,@functOnHeadArity,true))
+    
+    # Agrego todos los nodos a la raiz
+    @tree << onScannedRobot
+    @tree << onHitBullet
+    @tree << onHitByBullet
   end
   
   # Modifica al objeto para que este cree
   # un arbol usando el metodo de full
   # para hacer un arbol random.
   def fullMethod
-   @tree.children{
-     |child|
-     fullMethodAux(0,child,child.name)
-   }
+    @tree.children{
+      |child|
+      name = child.name 
+      child.children {
+        |grandChild|
+        parent = name + " " + grandChild.name
+        fullMethodAux(0,grandChild,parent)
+      }
+    }
   end
   # Metodo auxiliar para crear los subarboles
   # del metodo anterior.
-  def fullMethodAux(level,subtree,name)
+  def fullMethodAux(level,subtree,parent)
     arity = subtree.content.arity
     if (level != @maxDepth) then
       for i in 1..arity
-        subtree << Tree::TreeNode.new(name + " Level: " + level.to_s+" Node: "+ i.to_s,
-                                      Funct.new(@listFunctNum,@listFunctJAVA,@listFunctArity,true))
+        newNode = Funct.new(@listFunctNum,@listFunctJAVA,@listFunctArity,true)
+        subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+                                      " Level: " + level.to_s + " Node: "+ i.to_s,
+                                      newNode)
       end
       subtree.children {
         |child|
-        fullMethodAux(level+1,child,name)
+        fullMethodAux(level+1,child,parent)
       }
     else
-      if (name == "onScannedRobot") then
+      if (parent[0..13] == "onScannedRobot") then
         for i in 1..arity
-          subtree << Tree::TreeNode.new(name + " Level: " + level.to_s + " Node: " + i.to_s,
-                                        Funct.new(@listTermNum.merge(@listTermOnScannedRobot),
-                                                  @listTermJAVA.merge(@listTermJAVAOnScannedRobot),nil,false))
+          newNode = Funct.new(@listTermNum.merge(@listTermOnScannedRobot),
+                              @listTermJAVA.merge(@listTermJAVAOnScannedRobot),nil,false)
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+                                        " Level: " + level.to_s + " Node: "+ i.to_s,
+                                        newNode)
         end
       end
-      if (name == "onHitBullet") then
+      if (parent[0..10] == "onHitBullet") then
         for i in 1.. arity
-          subtree << Tree::TreeNode.new(name + " Level: " + level.to_s + " Node: " + i.to_s,
-                                        Funct.new(@listTermNum.merge(@listTermOnHitBullet),
-                                                  @listTermJAVA.merge(@listTermJAVAOnHitBullet),nil,false))
+          newNode = Funct.new(@listTermNum.merge(@listTermOnHitBullet),
+                              @listTermJAVA.merge(@listTermJAVAOnHitBullet),nil,false)
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+                                        " Level: " + level.to_s + " Node: "+ i.to_s,
+                                        newNode)
         end
      end
-      if (name == "onHitByBullet") then
+      if (parent[0..12] == "onHitByBullet") then
         for i in 1..arity
-          subtree << Tree::TreeNode.new(name + " Level: " + level.to_s + " Node: " + i.to_s,
-                                        Funct.new(@listTermNum.merge(@listTermOnHitByBullet),
-                                        @listTermJAVA.merge(@listTermJAVAOnHitByBullet),nil,false))
+          newNode = Funct.new(@listTermNum.merge(@listTermOnHitByBullet),
+                              @listTermJAVA.merge(@listTermJAVAOnHitByBullet),nil,false)
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+                                        " Level: " + level.to_s + " Node: "+ i.to_s,
+                                        newNode)
         end
       end
     end
@@ -107,47 +148,63 @@ class Individuo
   def growMethod
     @tree.children{
       |child|
-      growMethodAux(0,child,child.name)
+      name = child.name 
+      child.children {
+        |grandChild|
+        parent = name + " " + grandChild.name
+        growMethodAux(0,grandChild,parent)
+      }
     }
   end
   
   # Metodo auxiliar para crear los subarboles
   # del metodo anterior.
-  def growMethodAux(level,subtree,name)
+  def growMethodAux(level,subtree,parent)
     terminal = false
     terminal = true if (rand() < 0.5)
     arity = subtree.content.arity
     if (level != @maxDepth && !terminal) then
       for i in 1..arity
-        subtree << Tree::TreeNode.new(name + " Level: " + level.to_s+" Node: "+ i.to_s,
-                                      Funct.new(@listFunctNum,@listFunctJAVA,@listFunctArity,true))
+        newNode = Funct.new(@listFunctNum,@listFunctJAVA,@listFunctArity,true)
+        subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+                                      " Level: " + level.to_s + " Node: "+ i.to_s,
+                                      newNode)
       end
       subtree.children {
         |child|
-        fullMethodAux(level+1,child,name)
+        growMethodAux(level+1,child,parent)
       }
     else
-      if (name == "onScannedRobot") then
+      if (parent[0..13] == "onScannedRobot") then
         for i in 1..arity
-          subtree << Tree::TreeNode.new(name + " Level: " + level.to_s + " Node: " + i.to_s,
-                                        Funct.new(@listTermNum.merge(@listTermOnScannedRobot),
-                                                  @listTermJAVA.merge(@listTermJAVAOnScannedRobot),nil,false))
+          newNode = Funct.new(@listTermNum.merge(@listTermOnScannedRobot),
+                              @listTermJAVA.merge(@listTermJAVAOnScannedRobot),nil,false)
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+                                        " Level: " + level.to_s + " Node: "+ i.to_s,
+                                        newNode)
         end
       end
-      if (name == "onHitBullet") then
+      if (parent[0..10] == "onHitBullet") then
         for i in 1.. arity
-          subtree << Tree::TreeNode.new(name + " Level: " + level.to_s + " Node: " + i.to_s,
-                                        Funct.new(@listTermNum.merge(@listTermOnHitBullet),
-                                                  @listTermJAVA.merge(@listTermJAVAOnHitBullet),nil,false))
+          newNode = Funct.new(@listTermNum.merge(@listTermOnHitBullet),
+                              @listTermJAVA.merge(@listTermJAVAOnHitBullet),nil,false)
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+                                        " Level: " + level.to_s + " Node: "+ i.to_s,
+                                        newNode)
         end
      end
-      if (name == "onHitByBullet") then
+      if (parent[0..12] == "onHitByBullet") then
         for i in 1..arity
-          subtree << Tree::TreeNode.new(name + " Level: " + level.to_s + " Node: " + i.to_s,
-                                        Funct.new(@listTermNum.merge(@listTermOnHitByBullet),
-                                        @listTermJAVA.merge(@listTermJAVAOnHitByBullet),nil,false))
+          newNode = Funct.new(@listTermNum.merge(@listTermOnHitByBullet),
+                              @listTermJAVA.merge(@listTermJAVAOnHitByBullet),nil,false)
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+                                        " Level: " + level.to_s + " Node: "+ i.to_s,
+                                        newNode)
         end
       end
     end
   end
+  
+
+  
 end
