@@ -53,29 +53,44 @@ class Individuo
     @functOnHeadJAVA = {"Head" => "ahead(#1);"} 
     @functOnHeadArity = {"Head" => 1}
     
+    #Hash para la funcion TurnRight
+    @functTurnRightNum = {1=>"TurnRigth"}
+    @functTurnRightJAVA = {"TurnRigth" => "turnRight(#1);"} 
+    @functTurnRightArity = {"TurnRigth" => 1}
+    
     # Hash para la funcion Fire
     @functFireNum = {1 => "Fire"}
     @functFireJAVA = {"Fire" => "fire(#1);"} 
     @functFireArity = {"Fire" => 1}
+    
+    
     # Creamos el nodo raiz y sus 3 nodos principales      
     @tree = Tree::TreeNode.new("Main", "Nodo Raiz") 
     onScannedRobot = Tree::TreeNode.new("onScannedRobot","Nodo del evento onScannedRobot")
     onHitBullet = Tree::TreeNode.new("onHitBullet","Nodo del evento onHitBullet")
     onHitByBullet = Tree::TreeNode.new("onHitByBullet","Nodo del evento")
     
-    # onScannedRobot solo tendra dos funciones importantes
+    # onScannedRobot solo tendra tres funciones importantes
     # ahead(double distance) para moverse hacia tras o hacia delante
     # fire(double power) para disparar hacia el tanke
+    # turnRight(double degrees) para saber que direccion tomar
     onScannedRobot << Tree::TreeNode.new("onHead1", Funct.new(@functOnHeadNum,@functOnHeadJAVA,@functOnHeadArity,true))
-    onScannedRobot << Tree::TreeNode.new("fire", Funct.new(@functFireNum,@functFireJAVA,@functFireArity,true))
+    onScannedRobot << Tree::TreeNode.new("TurnRigth1",Funct.new(@functTurnRightNum,@functTurnRightJAVA,@functTurnRightArity,true))
+    onScannedRobot << Tree::TreeNode.new("Fire", Funct.new(@functFireNum,@functFireJAVA,@functFireArity,true))
     
-    # onHitBullet solo debe de decidir que direccion tomar
-    # por lo que el unico metodo a llamar es ahead(double distance)
+    # onHitBullet solo debe de decidir que direccion tomar y hacia
+    # que direccion moverse por lo que debe de implementar
+    # ahead(double distance) para moverse hacia tras o hacia delante
+    # turnRight(double degrees) para saber que direccion tomar
     onHitBullet << Tree::TreeNode.new("onHead2", Funct.new(@functOnHeadNum,@functOnHeadJAVA,@functOnHeadArity,true))
+    onHitBullet << Tree::TreeNode.new("TurnRigth2",Funct.new(@functTurnRightNum,@functTurnRightJAVA,@functTurnRightArity,true))
     
-    # onHitByBullet solo debe de decidir que direccion tomar
-    # por lo que el unico metodo a llamar es ahead(double distance)
+    # onHitByBullet solo debe de decidir que direccion tomar y hacia
+    # que direccion moverse por lo que debe de implementar
+    # ahead(double distance) para moverse hacia tras o hacia delante
+    # turnRight(double degrees) para saber que direccion tomar
     onHitByBullet << Tree::TreeNode.new("onHead3", Funct.new(@functOnHeadNum,@functOnHeadJAVA,@functOnHeadArity,true))
+    onHitByBullet << Tree::TreeNode.new("TurnRigth3",Funct.new(@functTurnRightNum,@functTurnRightJAVA,@functTurnRightArity,true))
     
     # Agrego todos los nodos a la raiz
     @tree << onScannedRobot
@@ -204,7 +219,11 @@ class Individuo
       end
     end
   end
-  
 
-  
+  # Guarda al individuo en la carpeta poblacion
+  # primero convirtiendo el arbol en un archivo
+  # java para finalizar compilandolo
+  def save
+    
+  end
 end
