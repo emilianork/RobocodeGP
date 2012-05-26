@@ -1,6 +1,11 @@
 require './lib/rubytree-0.8.2/tree.rb'
 require './src/GA/Funct.rb'
 
+# Clase que representa un nuevo
+# Individuo de la poblacion,
+# tiene un arbol que representa el
+# programa y una profundidad maxima.
+
 class Individuo
   attr_accessor :maxDepth, :tree
   # * *Args*    :
@@ -23,12 +28,12 @@ class Individuo
                   "Add" => 2, "Sub" => 2, "Mult" => 2,
                   "Div" => 2}
     #Lista de las funciones hechas en java
-    @listFunctJAVA = {"Abs" => "Math.abs(#1)", "Neg" => "-1*Math.asb(#1)", "Sin" => "Math.sin(#1)",
+    @listFunctJAVA = {"Abs" => "Math.abs(#1)", "Neg" => "-1*Math.abs(#1)", "Sin" => "Math.sin(#1)",
                   "Cos" => "Math.cos(#1)", "ArcSin" => "Math.asin(#1)", "ArcCos" => "Math.acos(#1)",
-                  "IfPositive" => "if (0 < #1) {\n #2;\n } else { \n#3;\n}",
-                  "IfGreater" => "if (#1 < #2) {\n #3;\n } else { \n#4;\n}",
-                  "Add" => "(#1 + #2)", "Sub" => "(#1 - #2)", "Mult" => "(#1 * #2)",
-                  "Div" => "(#1 / #2)"}
+                  "IfPositive" => "ifPositive(#1,#1,#1)",
+                  "IfGreater" => "ifGreater(#1,#1,#1,#1)",
+                  "Add" => "(#1 + #1)", "Sub" => "(#1 - #1)", "Mult" => "(#1 * #1)",
+                  "Div" => "(#1 / #1)"}
     #Lista de Terminos
     @listTermNum = {1 =>"Energy", 2 => "Velocity",3=>"X", 4 =>"Y", 5 =>"BattleFieldHeight",
                    6 =>"BattleFieldWidth",7 => "Zero", 8 => "PI", 9 => "Random"}
@@ -194,7 +199,7 @@ class Individuo
         for i in 1..arity
           newNode = Funct.new(@listTermNum.merge(@listTermOnScannedRobot),
                               @listTermJAVA.merge(@listTermJAVAOnScannedRobot),nil,false)
-          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Terminal: " + newNode.funct +
                                         " Level: " + level.to_s + " Node: "+ i.to_s,
                                         newNode)
         end
@@ -203,7 +208,7 @@ class Individuo
         for i in 1.. arity
           newNode = Funct.new(@listTermNum.merge(@listTermOnHitBullet),
                               @listTermJAVA.merge(@listTermJAVAOnHitBullet),nil,false)
-          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Terminal: " + newNode.funct +
                                         " Level: " + level.to_s + " Node: "+ i.to_s,
                                         newNode)
         end
@@ -212,7 +217,7 @@ class Individuo
         for i in 1..arity
           newNode = Funct.new(@listTermNum.merge(@listTermOnHitByBullet),
                               @listTermJAVA.merge(@listTermJAVAOnHitByBullet),nil,false)
-          subtree << Tree::TreeNode.new("Parent: " + parent + " Function: " + newNode.funct +
+          subtree << Tree::TreeNode.new("Parent: " + parent + " Terminal: " + newNode.funct +
                                         " Level: " + level.to_s + " Node: "+ i.to_s,
                                         newNode)
         end
