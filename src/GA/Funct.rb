@@ -1,10 +1,10 @@
- #!/usr/bin/env ruby
+#!/usr/bin/env ruby
  
- # Clase que representa una funcion o una
- # funcion terminal, nos dice cual es la
- # aridad de la funcion, si es una funcion
- # o no, y por ultimo su expresion formal
- # en java.
+# Clase que representa una funcion o una
+# funcion terminal, nos dice cual es la
+# aridad de la funcion, si es una funcion
+# o no, y por ultimo su expresion formal
+# en java.
 class Funct
   attr_accessor :funct, :isFunct, :arity, :javaExpresion
   # * *Args*    :
