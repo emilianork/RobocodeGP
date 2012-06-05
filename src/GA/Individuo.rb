@@ -11,7 +11,8 @@ class Individuo
   attr_accessor :maxDepth, :tree
   # * *Args*    :
   #   - +maxDepth+ La profundidad maxima del arbol 
-  #   - +newMaxDepth+ La prufundidad maxima que puede tener si se muta le individuo.
+  #   - +newMaxDepth+ La prufundidad maxima que puede tener si se muta 
+  # le individuo.
   # * *Returns* :
   #   - +Individuo+ Inicializa solamente las funciones que se van a usar
   # * *Raises* :
@@ -370,7 +371,8 @@ class Individuo
             nodo_escogido(level,padre,newChild,parent)
           else
             # Si no paso a ningun caso anterior sigo bajando
-            mutationAux(level+1,subtree[newChild],parent,isTerminal,levelToMutate)
+            mutationAux(level+1,subtree[newChild],parent,isTerminal,
+                        levelToMutate)
           end
         end
       end
@@ -430,10 +432,106 @@ class Individuo
     end
   end
   
+  # Metodo que regresa un Arreglo con los
+  # dos individuos hijos.
   def crossover(parent)
-    padre = parent.clone
-    
+    parent1 = self.clone
+    parent2 = parent.clone
+    puntoCruza = Array.new
+    # Genera los puntos de cruza de cada padre
+    # para despues crear a sus respectivos hijos
+    puntoCruza[0] = ruta(parent1)
+    puntoCruza[1] = ruta(parent2)
+
   end
+
+  # Metodo que dado un Individuo
+  # escoge los nodos cruza de los 7
+  # subarboles, y da su ruta para llegar
+  # a ellos
+  def ruta(parent)
+    rutaRegresada = Array.new
+    subArboles = Array.new
+    rutaSubArboles = Array.new
+    rutaRegresada << rutaSubArboles
+    rutaRegresada << subArboles
+    parent.tree.children {
+      |child|
+      child.children {
+        |grandChild|
+          # Decide si el nodo que sera el punto de cruza
+          # sera terminal o funcion
+          if rand < 0.1 then
+            isTerminal = true
+          else
+            isTerminal = false
+          end
+          # Genero la altura, y dependiendo de esta
+          # genero un nivel donde se va a cruzar
+          height = grandChild.node_height
+          levelToCroosover = rand(height)
+          # Representa la ruta que debe de seguir
+          # para llegar al punto de cruza
+          rutaNueva = Array.new
+          # Si el nodo raiz desde un principio es
+          # una hoja entonces simplemente escogo 
+          # ese nodo.
+          if (grandChild[0].is_leaf?) then
+            subArboles << grandChild[0].clone
+            rutaNueva << 0
+            rutaSubArboles << rutaNueva
+          else
+            rutaAux(0,grandChild,isTerminal,subArboles,rutaNueva,
+                    levelToCroosover)
+            rutaSubArboles << rutaNueva
+          end
+      }
+    }
+    return rutaRegresada
+  end
+  
+  # Funcion auxiliar para trazar su
+  # ruta, dependiendo si es terminal
+  # y en que nivel se escogieron los
+  # nodos
+  def rutaAux(level,subtree,isTerminal,subArboles,rutaSubArbolesAux,
+              levelToCroosover)
+    # Selecciona al subarbol para cruzarlo
+    childNodes = subtree.out_degree
+    newChild = rand(childNodes)
+    # Checo los casos para escoger por donde irme.
+    
+    #Si es terminal y hoja, entonces escogo ese nodo.
+    if (isTerminal && subtree[newChild].is_leaf?) then
+      subArboles << subtree[newChild].clone
+      rutaSubArbolesAux << newChild
+    else
+      # Si es terminal, pero no hoja entonces simplemente
+      # sigo bajando por el arbol hasta encontrar una hoja
+      if (isTerminal) then
+        rutaAux(level+1,subtree[newChild],isTerminal,subArboles,
+                rutaSubArbolesAux << newChild,levelToCroosover)
+      else
+        # Si estoy en el nivel a cruzar, escogo ese nodo como
+        # punto de cruza.
+        if (levelToCroosover == level + 1) then
+          subArboles << subtree[newChild].clone
+          rutaSubArbolesAux << newChild
+        else
+          # Si no llegue a una funcion antes de intentar llegar
+          # al nivel donde se va a mutar, escogo
+          # en nodo padre de la hoja
+          if (subtree[newChild].is_leaf?) then
+            subArboles << subtree.clone
+          else
+            # Si no paso a ningun caso anterior sigo bajando
+            rutaAux(level+1, subtree[newChild],isTerminal,subArboles,
+                    rutaSubArbolesAux << newChild,levelToCroosover)
+          end
+        end
+      end
+    end
+  end  
   
   
   # Guarda al individuo en la carpeta poblacion
@@ -441,7 +539,6 @@ class Individuo
   # java para finalizar compilandolo
   def save
     name = "Individuo"
-    decode = Decode.new(this,name)
+    decode = Decode.new(self,name)
   end
 end
-
