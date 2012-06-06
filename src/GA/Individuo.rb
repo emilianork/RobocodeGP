@@ -37,7 +37,7 @@ class Individuo
       "IfPositive" => "ifPositive(#1,#1,#1)",
       "IfGreater" => "ifGreater(#1,#1,#1,#1)",
       "Add" => "(#1 + #1)", "Sub" => "(#1 - #1)", "Mult" => "(#1 * #1)",
-      "Div" => "(#1 / #1)"}
+      "Div" => "div(#1,#1)"}
     
     #Lista de Terminos
     @listTermNum = {1 =>"Energy", 2 => "Velocity",3=>"X", 4 =>"Y",
@@ -437,12 +437,32 @@ class Individuo
   def crossover(parent)
     parent1 = self.clone
     parent2 = parent.clone
+    maxDepth = parent1.maxDepth if (parent1.maxDepth > parent2.maxDepth)
+    maxDepth = parent2.maxDepth if (parent2.maxDepth >= parent1.maxDepth)
     puntoCruza = Array.new
     # Genera los puntos de cruza de cada padre
     # para despues crear a sus respectivos hijos
     puntoCruza[0] = ruta(parent1)
     puntoCruza[1] = ruta(parent2)
-
+    puntoAux1 = puntoCruza[0][0].clone
+    puntoAux2 = puntoCruza[1][0].clone
+    puntoCruza[0][0] = puntoAux2
+    puntoCruza[1][0] = puntoAux1
+    parent1.tree.print_tree
+    print puntoCruza[0][0]
+    puts
+    parent2.tree.print_tree
+    print puntoCruza[1][0]
+    puts
+    # Crea los 2 hijos para regresar un arreglo
+    # con los 2 hijos.
+    insertaPuntosCruza(parent1,puntoCruza[1])
+    insertaPuntosCruza(parent2,puntoCruza[0])
+    podaArbol(parent1,maxDepth)
+    podaArbol(parent2,maxDepth)
+    parent1.tree.print_tree
+    parent2.tree.print_tree 
+    #return (Array.new << parent1) << parent2
   end
 
   # Metodo que dado un Individuo
@@ -515,13 +535,13 @@ class Individuo
         # Si estoy en el nivel a cruzar, escogo ese nodo como
         # punto de cruza.
         if (levelToCroosover == level + 1) then
-          subArboles << subtree[newChild].clone
+          subArboles << subtree[newChild].clone          
           rutaSubArbolesAux << newChild
         else
           # Si no llegue a una funcion antes de intentar llegar
           # al nivel donde se va a mutar, escogo
           # en nodo padre de la hoja
-          if (subtree[newChild].is_leaf?) then
+          if (subtree[newChild].is_leaf?) then 
             subArboles << subtree.clone
           else
             # Si no paso a ningun caso anterior sigo bajando
@@ -533,6 +553,90 @@ class Individuo
     end
   end  
   
+  # Coloca los subarboles escogidos
+  # donde le corresponde
+  def insertaPuntosCruza(parent,puntoCruza)
+    for i in 1..7
+      subtree = parent.tree[0][i-1] if (i <= 3)
+      subtree = parent.tree[1][i-4] if (i > 3 && i <= 5)
+      subtree = parent.tree[2][i-6] if (i > 5) 
+      size = puntoCruza[0][i-1].size
+      for j in 1...size
+        subtree = subtree[puntoCruza[0][i-1][j-1]]
+      end
+      subtree.remove!(subtree[puntoCruza[0][i-1][size-1]])
+      r1 = rand
+      r2 = rand
+      puntoCruza[1][i-1].name = puntoCruza[1][i-1].name + " " + r1.to_s + " " + r2.to_s
+      subtree.add(puntoCruza[1][i-1],puntoCruza[0][i-1][size-1])
+    end
+  end
+  
+  # Si el arbol es demasiado grande, entonces
+  # lo recorta
+  
+  def podaArbol(parent,maxDepth)
+    parent.tree.children {
+      |child|
+      child.children {
+        |grandChild|
+        parent = child.name + " " + grandChild.name
+        podaArbolAux(0,child.name,grandChild,maxDepth,parent)
+      }
+    }
+  end
+  
+  
+  # Funcion auxiliar de la anterior
+  def podaArbolAux(level,name,subtree,maxDepth,parent)
+    if !(level+1 > maxDepth)then
+      if !(subtree.is_leaf?) then
+        children = subtree.out_degree
+        for i in 1..children
+          podaArbolAux(level+1,name,subtree[i-1],maxDepth,parent)
+        end
+      end 
+      return 
+    else
+      children = subtree.out_degree
+      for i in 1..children
+        #Genero los hijos random
+        if !(subtree[i-1].is_leaf?) then
+          subtree.remove!(subtree[i-1])
+          if (name == "onScannedRobot") then
+            newNode = Funct.new(@listTermNum.merge(@listTermOnScannedRobot),
+                                @listTermJAVA.merge(@listTermJAVAOnScannedRobot),
+                                nil,
+                                false)
+            subtree.add(Tree::TreeNode.new("Parent: " + parent +
+                                          " Function: " + newNode.funct +
+                                          " Level: " + level.to_s + " Node: " +
+                                          (i-1).to_s + " Random",newNode),i-1)
+          end
+          if (name == "onHitBullet") then
+            newNode = Funct.new(@listTermNum.merge(@listTermOnHitBullet),
+                                @listTermJAVA.merge(@listTermJAVAOnHitBullet),
+                                nil,false)
+            subtree.add(Tree::TreeNode.new("Parent: " + parent + " Function: " +
+                                          newNode.funct + " Level: " + level.to_s +
+                                          " Node: " + (i-1).to_s + " Random",
+                                          newNode),i-1)
+          end
+          if (name == "onHitByBullet") then
+            newNode = Funct.new(@listTermNum.merge(@listTermOnHitByBullet),
+                                @listTermJAVA.merge(@listTermJAVAOnHitByBullet),
+                                nil,
+                                false)
+            subtree.add(Tree::TreeNode.new("Parent: " + parent + " Function: " +
+                                          newNode.funct + " Level: " + level.to_s +
+                                          " Node: " + (i-1).to_s + " Random",
+                                          newNode),i-1)
+            
+          end
+        end
+      end
+    end
+  end
   
   # Guarda al individuo en la carpeta poblacion
   # primero convirtiendo el arbol en un archivo

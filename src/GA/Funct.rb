@@ -16,7 +16,11 @@ class Funct
   def initialize(listFunct,hashFunctJAVA,hashArity,isFunct)
     @isFunct = isFunct
     @funct = listFunct[rand(1..listFunct.size).to_i]
-    @arity = hashArity[@funct] if isFunct
+    if isFunct then
+      @arity = hashArity[@funct] 
+    else
+      @arity = 0
+    end
     @javaExpresion = hashFunctJAVA[@funct]
   end
 end

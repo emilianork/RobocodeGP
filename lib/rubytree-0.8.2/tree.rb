@@ -127,13 +127,13 @@ module Tree
     include Enumerable
 
     # Name of this node.  Expected to be unique within the tree.
-    attr_reader   :name
+    attr_accessor   :name
 
     # Content of this node.  Can be +nil+.
     attr_accessor :content
 
     # Parent of this node.  Will be +nil+ for a root node.
-    attr_reader   :parent
+    attr_accessor   :parent
 
     # Creates a new node with a name and optional content.
     # The node name is expected to be unique within the tree.

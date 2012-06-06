@@ -72,6 +72,12 @@ class Decode
       "\t\t} else {\n"+
       "\t\t\treturn e2;\n" +
       "\t\t}\n"+
+      "\tpublic double div(double b1,double b2) {\n" +
+      "\t\tif(b2 == 0) {\n"+
+      "\t\t\treturn 0;\n"+
+      "\t\t} else {\n"+
+      "\t\t\treturn b1/b2;\n" +
+      "\t\t}\n"+
       "\t}\n"+
       "}\n"
     @javaExpresion["#2"] = name
