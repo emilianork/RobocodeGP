@@ -8,7 +8,7 @@ require './src/GA/Decode.rb'
 # programa y una profundidad maxima.
 
 class Individuo
-  attr_accessor :maxDepth, :tree
+  attr_accessor :maxDepth, :tree, :newMaxDepth
   # * *Args*    :
   #   - +maxDepth+ La profundidad maxima del arbol 
   #   - +newMaxDepth+ La prufundidad maxima que puede tener si se muta 
@@ -33,7 +33,7 @@ class Individuo
     #Lista de las funciones hechas en java
     @listFunctJAVA = {"Abs" => "Math.abs(#1)", "Neg" => "-1*Math.abs(#1)",
       "Sin" => "Math.sin(#1)","Cos" => "Math.cos(#1)", 
-      "ArcSin" => "Math.asin(#1)", "ArcCos" => "Math.acos(#1)",
+      "ArcSin" => "Math.asin(arco(#1))", "ArcCos" => "Math.acos(arco(#1))",
       "IfPositive" => "ifPositive(#1,#1,#1)",
       "IfGreater" => "ifGreater(#1,#1,#1,#1)",
       "Add" => "(#1 + #1)", "Sub" => "(#1 - #1)", "Mult" => "(#1 * #1)",
@@ -439,30 +439,21 @@ class Individuo
     parent2 = parent.clone
     maxDepth = parent1.maxDepth if (parent1.maxDepth > parent2.maxDepth)
     maxDepth = parent2.maxDepth if (parent2.maxDepth >= parent1.maxDepth)
-    puntoCruza = Array.new
     # Genera los puntos de cruza de cada padre
     # para despues crear a sus respectivos hijos
-    puntoCruza[0] = ruta(parent1)
-    puntoCruza[1] = ruta(parent2)
-    puntoAux1 = puntoCruza[0][0].clone
-    puntoAux2 = puntoCruza[1][0].clone
-    puntoCruza[0][0] = puntoAux2
-    puntoCruza[1][0] = puntoAux1
-    parent1.tree.print_tree
-    print puntoCruza[0][0]
-    puts
-    parent2.tree.print_tree
-    print puntoCruza[1][0]
-    puts
+    puntoCruza1 = ruta(parent1)
+    puntoCruza2 = ruta(parent2)
     # Crea los 2 hijos para regresar un arreglo
     # con los 2 hijos.
-    insertaPuntosCruza(parent1,puntoCruza[1])
-    insertaPuntosCruza(parent2,puntoCruza[0])
+    insertaPuntosCruza(parent1,puntoCruza1[0],puntoCruza2[1])
+    insertaPuntosCruza(parent2,puntoCruza2[0],puntoCruza1[1])
     podaArbol(parent1,maxDepth)
     podaArbol(parent2,maxDepth)
-    parent1.tree.print_tree
-    parent2.tree.print_tree 
-    #return (Array.new << parent1) << parent2
+    parent1.maxDepth = maxDepth 
+    parent2.maxDepth = maxDepth
+    parent1.newMaxDepth = maxDepth if (parent1.newMaxDepth < maxDepth)
+    parent2.newMaxDepth = maxDepth if (parent2.newMaxDepth < maxDepth)
+    return (Array.new << parent1) << parent2
   end
 
   # Metodo que dado un Individuo
@@ -473,8 +464,8 @@ class Individuo
     rutaRegresada = Array.new
     subArboles = Array.new
     rutaSubArboles = Array.new
-    rutaRegresada << rutaSubArboles
-    rutaRegresada << subArboles
+    rutaRegresada[0] = rutaSubArboles
+    rutaRegresada[1] =  subArboles
     parent.tree.children {
       |child|
       child.children {
@@ -497,7 +488,7 @@ class Individuo
           # una hoja entonces simplemente escogo 
           # ese nodo.
           if (grandChild[0].is_leaf?) then
-            subArboles << grandChild[0].clone
+            subArboles.push(grandChild.children[0].clone)
             rutaNueva << 0
             rutaSubArboles << rutaNueva
           else
@@ -522,31 +513,38 @@ class Individuo
     # Checo los casos para escoger por donde irme.
     
     #Si es terminal y hoja, entonces escogo ese nodo.
-    if (isTerminal && subtree[newChild].is_leaf?) then
-      subArboles << subtree[newChild].clone
+    if (isTerminal && subtree.children[newChild].is_leaf?) then   
+      subArboles.push(subtree.children[newChild].clone)
       rutaSubArbolesAux << newChild
+      return
     else
       # Si es terminal, pero no hoja entonces simplemente
       # sigo bajando por el arbol hasta encontrar una hoja
       if (isTerminal) then
-        rutaAux(level+1,subtree[newChild],isTerminal,subArboles,
-                rutaSubArbolesAux << newChild,levelToCroosover)
+        rutaAux(level+1,subtree.children[newChild],isTerminal,subArboles,
+                (rutaSubArbolesAux.push(newChild)),levelToCroosover)
+        return
       else
         # Si estoy en el nivel a cruzar, escogo ese nodo como
         # punto de cruza.
         if (levelToCroosover == level + 1) then
-          subArboles << subtree[newChild].clone          
+          subArboles.push(subtree.children[newChild].clone)
           rutaSubArbolesAux << newChild
+          return
         else
           # Si no llegue a una funcion antes de intentar llegar
           # al nivel donde se va a mutar, escogo
           # en nodo padre de la hoja
-          if (subtree[newChild].is_leaf?) then 
-            subArboles << subtree.clone
+          if (subtree.children[newChild].is_leaf?) then 
+            subArboles.push(subtree.clone)
+            return
           else
-            # Si no paso a ningun caso anterior sigo bajando
-            rutaAux(level+1, subtree[newChild],isTerminal,subArboles,
-                    rutaSubArbolesAux << newChild,levelToCroosover)
+            if (!isTerminal && (levelToCroosover != level + 1)) then
+              # Si no paso a ningun caso anterior sigo bajando
+              rutaAux(level+1, subtree.children[newChild],isTerminal,subArboles,
+                      rutaSubArbolesAux << newChild,levelToCroosover)
+              return
+            end
           end
         end
       end
@@ -555,22 +553,63 @@ class Individuo
   
   # Coloca los subarboles escogidos
   # donde le corresponde
-  def insertaPuntosCruza(parent,puntoCruza)
-    for i in 1..7
-      subtree = parent.tree[0][i-1] if (i <= 3)
-      subtree = parent.tree[1][i-4] if (i > 3 && i <= 5)
-      subtree = parent.tree[2][i-6] if (i > 5) 
-      size = puntoCruza[0][i-1].size
-      for j in 1...size
-        subtree = subtree[puntoCruza[0][i-1][j-1]]
-      end
-      subtree.remove!(subtree[puntoCruza[0][i-1][size-1]])
-      r1 = rand
-      r2 = rand
-      puntoCruza[1][i-1].name = puntoCruza[1][i-1].name + " " + r1.to_s + " " + r2.to_s
-      subtree.add(puntoCruza[1][i-1],puntoCruza[0][i-1][size-1])
-    end
-  end
+  def insertaPuntosCruza(parent,puntoCruza,arboles)
+    i = 0
+    parent.tree.children {
+      |child|
+        child.children{
+          |grandChild|
+            subtree = grandChild
+            size = puntoCruza[i].size
+            arrayCamino = puntoCruza[i]
+            for j in 0...size-1
+              subtree = subtree.children[arrayCamino[j]]
+            end
+            subtree.remove!(subtree.children[arrayCamino[size-1]])
+            arboles[i].name = arboles[i].name + " " + rand().to_s + " " + rand().to_s
+            subtree.add(arboles[i],arrayCamino[size-1])
+            i += 1
+        }
+    }
+  end    
+    
+    
+    
+    
+    
+    
+  #  for i in 1..7
+  #    subtree = (parent.tree.children[0]).children[i-1] if (i <= 3)
+   #   subtree = (parent.tree.children[1]).children[i-4] if (i > 3 && i <= 5)
+  #    subtree = (parent.tree.children[2]).children[i-6] if (i > 5) 
+   #   namae = subtree.name
+  #    size = puntoCruza[i-1].size
+  #    for j in 0...size-1
+        #puts "SubArbol: "+ i.to_s+ "    Altura: "+(subtree.node_height).to_s
+  #      subtree = subtree.children[puntoCruza[i-1][j]]
+   #   end
+      #if (subtree.is_leaf?) then
+      #  puts "No tiene Hijos  " + namae
+      #  print "SubArbol: " + i.to_s + " Array: "
+      #  print puntoCruza[i-1]
+      #  puts
+      #  parent.tree.print_tree
+      # raise "Algo paso"
+      #end
+      #degree = subtree.out_degree
+  #    subtree.remove!(subtree.children[puntoCruza[i-1][size-1]])
+      #if (degree == subtree.out_degree) then
+      #  puts "No lo pude quitar " + namae
+      #  puts "SubArbol: " + i.to_s + "  Array: " + puntoCruza[i-1].to_s
+      #  parent.tree.print_tree
+      #  raise "Falle"
+      #end
+  #    r1 = rand
+  #    r2 = rand
+  #    arboles[i-1].name = arboles[i-1].name + " " + r1.to_s + " " + r2.to_s
+  #    subtree.add(arboles[i-1],puntoCruza[i-1][size-1])
+  #  end
+  #end
   
   # Si el arbol es demasiado grande, entonces
   # lo recorta
@@ -636,13 +675,5 @@ class Individuo
         end
       end
     end
-  end
-  
-  # Guarda al individuo en la carpeta poblacion
-  # primero convirtiendo el arbol en un archivo
-  # java para finalizar compilandolo
-  def save
-    name = "Individuo"
-    decode = Decode.new(self,name)
   end
 end

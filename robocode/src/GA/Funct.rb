@@ -23,4 +23,16 @@ class Funct
     end
     @javaExpresion = hashFunctJAVA[@funct]
   end
+  
+  def to_json(*a)
+     json_hash = {
+       JSON.create_id   => self.class.name,
+       "isFunct"        => isFunct,
+       "funct"          => funct,
+       "arity"          => arity,
+       "javaExpresion"  => javaExpresion
+     }
+     return json_hash.to_json
+   end
+  
 end

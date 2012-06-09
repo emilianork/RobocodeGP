@@ -1,4 +1,5 @@
 require './src/GA/Individuo.rb'
+require './lib/json-1.7.3/json.rb'
 
 class Decode
   attr_accessor :individuo, :javaExpresion
@@ -10,7 +11,7 @@ class Decode
   #
   def initialize(individuo,name)
     @individuo = individuo
-    @javaExpresion = "package SimpleRobot;\n" +
+    @javaExpresion = "package " + name +";\n" +
       "import robocode.*;\n" +
       "import java.awt.Color;\n" +
       "import java.util.Random;\n" +
@@ -20,7 +21,7 @@ class Decode
       "*/\n" +
       "public class #2 extends Robot\n" +
       "{\n" +
-      "\tprivate double random = (new Random()).nextDouble();\n"+
+      "\tprivate double random;\n"+
       "\t/**\n" +
       "\t* run: MyFirstRobot's default behavior\n" +
       "\t*/\n"+
@@ -30,6 +31,8 @@ class Decode
       "\t\t// and the next line:\n"+
       "\t\tsetColors(Color.yellow,Color.blue,Color.yellow); // body,gun,radar\n"+
       "\t\t// Robot main loop\n"+
+      "\t\tRandom rand = new Random();\n"+
+      "\t\tthis.random = rand.nextDouble();\n"+
       "\t\twhile(true) {\n"+
       "\t\t\tturnGunRight(360);\n"+
       "\t\t}\n"+
@@ -60,7 +63,7 @@ class Decode
       "\t\tahead(#1);\n"+
       "\t}\n"+
       "\tpublic double ifPositive(double bool,double e1,double e2) {\n" +
-      "\t\tif(bool >= 0) {\n"+
+      "\t\tif(bool > 0) {\n"+
       "\t\t\treturn e1;\n"+
       "\t\t} else {\n"+
       "\t\t\treturn e2;\n" +
@@ -72,12 +75,23 @@ class Decode
       "\t\t} else {\n"+
       "\t\t\treturn e2;\n" +
       "\t\t}\n"+
+      "\t}\n"+
       "\tpublic double div(double b1,double b2) {\n" +
       "\t\tif(b2 == 0) {\n"+
       "\t\t\treturn 0;\n"+
       "\t\t} else {\n"+
       "\t\t\treturn b1/b2;\n" +
       "\t\t}\n"+
+      "\t}\n"+
+      "\tpublic double arco(double b1) {\n" +
+      "\t\tif(b1 >= 1) {\n"+
+      "\t\t\treturn 0.99;\n"+
+      "\t\t} else {\n"+
+      "\t\t\tif (b1 <= -1) {\n" +
+      "\t\t\t\treturn -0.99;\n"+
+      "\t\t\t}\n"+
+      "\t\t}\n"+
+      "\t\treturn b1;\n" +
       "\t}\n"+
       "}\n"
     @javaExpresion["#2"] = name
@@ -101,14 +115,19 @@ class Decode
          (name == "TurnRigth3") || (name == "Fire")) then
       subtree.children{
         |child|
-        decode(child)
+        decodeAux(child)
       }
     else
-      funct = subtree.content
-      @javaExpresion["#1"] = funct.javaExpresion.clone
+      if !(((subtree.content).class).to_s == "Funct") then
+        funct = subtree.content["javaExpresion"]
+        @javaExpresion["#1"] = funct.clone
+      else
+        funct = subtree.content
+        @javaExpresion["#1"] = funct.javaExpresion.clone
+      end
       subtree.children{
         |child|
-        decode(child)
+        decodeAux(child)
       }
     end
   end

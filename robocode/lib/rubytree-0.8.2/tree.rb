@@ -134,6 +134,8 @@ module Tree
 
     # Parent of this node.  Will be +nil+ for a root node.
     attr_accessor   :parent
+    
+    attr_accessor :children
 
     # Creates a new node with a name and optional content.
     # The node name is expected to be unique within the tree.
@@ -747,7 +749,7 @@ module Tree
     # @see http://flori.github.com/json
     def to_json(*a)
       begin
-        require 'json'
+        #require 'json'
 
         json_hash = {
           "name"         => name,
