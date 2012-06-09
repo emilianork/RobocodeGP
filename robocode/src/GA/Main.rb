@@ -2,10 +2,10 @@ require './src/GA/GA.rb'
 #require './src/GA/Individuo.rb'
 #require './src/GA/Decode.rb'
 
-poblacion = 16
+poblacion = 8
 proCruza = 0.85
 proMutacion = 0.05
-maxGeneraciones = 25
+maxGeneraciones = 15
 individuosTorneo = 5
 maxDepth = 4
 newMaxDepth = 6

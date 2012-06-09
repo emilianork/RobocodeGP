@@ -7,6 +7,11 @@ require './src/GA/Decode.rb'
 # tiene un arbol que representa el
 # programa y una profundidad maxima.
 
+# Cada inviduo esta formado por un arbol que contiene a su vez
+# 7 subarboles que representan las funciones principales
+# para tomar decisiones sobre si debe de disparar el robot
+# avanzar hacia algun lado o solo girar.
+
 class Individuo
   attr_accessor :maxDepth, :tree, :newMaxDepth
   # * *Args*    :
@@ -447,8 +452,15 @@ class Individuo
     # con los 2 hijos.
     insertaPuntosCruza(parent1,puntoCruza1[0],puntoCruza2[1])
     insertaPuntosCruza(parent2,puntoCruza2[0],puntoCruza1[1])
+    # Si los hijos quedaron con tamaños muy grande
+    # entonces se podan sus respectivos arboles
+    # para quedarse hasta la altura maxima.
     podaArbol(parent1,maxDepth)
     podaArbol(parent2,maxDepth)
+    # Les asigno su altura maxima y si
+    # su altura es mayor a newMaxDepth
+    # entonces newMaxDepth sera igual
+    # a la altura maxima
     parent1.maxDepth = maxDepth 
     parent2.maxDepth = maxDepth
     parent1.newMaxDepth = maxDepth if (parent1.newMaxDepth < maxDepth)
@@ -552,7 +564,7 @@ class Individuo
   end  
   
   # Coloca los subarboles escogidos
-  # donde le corresponde
+  # donde les corresponde.
   def insertaPuntosCruza(parent,puntoCruza,arboles)
     i = 0
     parent.tree.children {
@@ -562,9 +574,15 @@ class Individuo
             subtree = grandChild
             size = puntoCruza[i].size
             arrayCamino = puntoCruza[i]
+            # Recorre el camino hasta llegar a al penulatimo
+            # nodo, para borrar el ultimo que marca el camino
+            # y remplazarlo por el nuevo.
             for j in 0...size-1
               subtree = subtree.children[arrayCamino[j]]
             end
+            # Remuevo el nodo y si existe un nodo con el mismo
+            # nombre, genero otro nombre random para que no haya o
+            # problema al insertar este nodo.
             subtree.remove!(subtree.children[arrayCamino[size-1]])
             arboles[i].name = arboles[i].name + " " + rand().to_s + " " + rand().to_s
             subtree.add(arboles[i],arrayCamino[size-1])
@@ -572,47 +590,12 @@ class Individuo
         }
     }
   end    
-    
-    
-    
-    
-    
-    
-  #  for i in 1..7
-  #    subtree = (parent.tree.children[0]).children[i-1] if (i <= 3)
-   #   subtree = (parent.tree.children[1]).children[i-4] if (i > 3 && i <= 5)
-  #    subtree = (parent.tree.children[2]).children[i-6] if (i > 5) 
-   #   namae = subtree.name
-  #    size = puntoCruza[i-1].size
-  #    for j in 0...size-1
-        #puts "SubArbol: "+ i.to_s+ "    Altura: "+(subtree.node_height).to_s
-  #      subtree = subtree.children[puntoCruza[i-1][j]]
-   #   end
-      #if (subtree.is_leaf?) then
-      #  puts "No tiene Hijos  " + namae
-      #  print "SubArbol: " + i.to_s + " Array: "
-      #  print puntoCruza[i-1]
-      #  puts
-      #  parent.tree.print_tree
-      # raise "Algo paso"
-      #end
-      #degree = subtree.out_degree
-  #    subtree.remove!(subtree.children[puntoCruza[i-1][size-1]])
-      #if (degree == subtree.out_degree) then
-      #  puts "No lo pude quitar " + namae
-      #  puts "SubArbol: " + i.to_s + "  Array: " + puntoCruza[i-1].to_s
-      #  parent.tree.print_tree
-      #  raise "Falle"
-      #end
-  #    r1 = rand
-  #    r2 = rand
-  #    arboles[i-1].name = arboles[i-1].name + " " + r1.to_s + " " + r2.to_s
-  #    subtree.add(arboles[i-1],puntoCruza[i-1][size-1])
-  #  end
-  #end
-  
+
   # Si el arbol es demasiado grande, entonces
-  # lo recorta
+  # lo recorta, bajando todo el arbol y la hoja
+  # esta a una profundidad mayor a la altura maxima
+  # entonces se dispone subir hasta encontrar el nivel
+  # que debe de ser hoja y genera uno random.
   
   def podaArbol(parent,maxDepth)
     parent.tree.children {
@@ -626,7 +609,13 @@ class Individuo
   end
   
   
-  # Funcion auxiliar de la anterior
+  # Funcion auxiliar de la anterior.
+  # Para saber en que nivel voy, le paso
+  # el nivel actual, el nombre del subarbol 
+  # endonde se encuentra, el nodo actual,
+  # la profundidad maxima que debe tener y 
+  # para generar el nombre voy bajando tambien
+  # el nombre del padre.
   def podaArbolAux(level,name,subtree,maxDepth,parent)
     if !(level+1 > maxDepth)then
       if !(subtree.is_leaf?) then
@@ -639,7 +628,8 @@ class Individuo
     else
       children = subtree.out_degree
       for i in 1..children
-        #Genero los hijos random
+        #Genero los hijos random 
+        # solo si no es hoja. 
         if !(subtree[i-1].is_leaf?) then
           subtree.remove!(subtree[i-1])
           if (name == "onScannedRobot") then
